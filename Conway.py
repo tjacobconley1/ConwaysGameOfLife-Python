@@ -1,80 +1,99 @@
-#Conways Game Of Life
-#Author: Tyler J. Conley
+#Conway's Game Of Life
+#Author: Tyler Conley
+import argparse
 import numpy as np
 import matplotlib.pyplot as plt
-import os
-import time
+import matplotlib.animation as anim
 
-#size of grid
-gscale = 50
-#create blank grid array
-grid = [[0 for c in range(gscale)] for r in range(gscale)]
-#counter variables
-i = 0
-j = 0
-x = grid
-#any corner position it needs to check 3 neighbors
-#any edge position except corners needs to check 5 neighbors
-#all middle positions need to check 8 neighbors
-#to check surrounding neighbors and switch block on or off
-def ComputeFrame(x):
-    for i in range((gscale-1)):
-        for j in range((gscale-1)):
-          #CORNER POSITIONS
-          if id(grid[i][j]) == id(grid[0][0]) or id(grid[i][j]) == id(grid[29][29]) or id(grid[i][j]) == id(grid[0][29]) or id(grid[29][0]) == id(grid[i][j]):
-              #for the (0,0) position
-              if id(grid[i][j]) == id(grid[0][0]):
-                  if grid[i][j] == 1:
-                      if grid[0][1] + grid[1][0] + grid[1][1] < 3:
-                          grid[i][j] = 0
-                  elif grid[i][j] == 0:
-                      if grid[0][1] + grid[1][0] + grid[1][1] == 3:
-                          grid[i][j] = 1
-              #for the (29, 29) position
-              elif id(grid[i][j]) == id(grid[29][29]):
-                  if grid[i][j] == 1:
-                      if grid[28][29] + grid[29][28] + grid[28][28] < 3:
-                          grid[i][j] = 0
-                  elif grid[i][j] == 0:
-                      if grid[28][29] + grid[29][28] + grid[28][28] == 3:
-                          grid[i][j] = 1
-              #for the (0,29) position
-              elif id(grid[i][j]) == id(grid[0][29]):
-                  if grid[i][j] == 1:
-                      if grid[0][28] + grid[1][29] + grid[1][28] < 3:
-                          grid[i][j] = 0
-                  elif grid[i][j] == 0:
-                      if grid[i][j] == 0:
-                          if grid[28][0] + grid[29][1] + grid[28][1] == 3:
-                              grid[i][j] = 1
-              #for the (29,0) position
-              elif id(grid[i][j]) == id(grid[29][0]):
-                  if grid[i][j] == 1:
-                      if grid[28][0] + grid[1][29] + grid[28][1] < 3:
-                          grid[i][j] = 0
-          #EDGE POSITIONS
-          elif id(grid[i][j]) == id(grid[i][0]):
-              if grid[i][j] == 0:
-                  if grid[i+1][j] + grid[i-1][j] + grid[i+1][j+1] + grid[i-1][j+1] + grid[i][j+1] >= 3:
-                      grid[i][j] = 1
-          elif id(grid[i][j]) == id(grid[0][j]):
-              if grid[i][j] == 1:
-                  if grid[i][j+1] + grid[i][j-1] + grid[i+1][j+1] + grid[i+1][j-1] + grid[i+1][j] < 3:
-                      grid[i][j] = 0
-          #MIDDLE POSITIONS
-          else:
-              if grid[i][j] == 1:
-                  if grid[i+1][j] + grid[i][j+1] + grid[i+1][j+1] + grid[i-1][j-1] + grid[i-1][j] + grid[i][j-1] + grid[i-1][j+1] + grid[i+1][j-1]:
-                      grid[i][j] = 0
-              if grid[i][j] == 0:
-                  if grid[i+1][j] + grid[i][j+1] + grid[i+1][j+1] + grid[i-1][j-1] + grid[i-1][j] + grid[i][j-1] + grid[i-1][j+1] + grid[i+1][j-1]:
-                      grid[i][j] = 1
-    os.system('clear')
-    print(x)
-    return
+        #values needed to create the grid
+ON = 255
+OFF = 0
+vals = [ON, OFF]
+#define function that returns a random grid of size scale*scale
+def randgrid(scale):
+    #returns a random grid of scale*scale values
+    # not sure what p=[0.2, 0.8] is doing
+    return np.random.choice(vals, scale*scale, p=[0.2, 0.8]).reshape(scale, scale)
+#define function that adds a glider at (i, j)
+def glider(i, j, grid):
+    #array to hold glider shape
+    glider = np.array([[0, 0, 255], [255, 0 , 255], [0, 255, 255]])
+    #choose spot on grid to place the glider to start
+    #sets the elements from that spot in grid to the values
+    #of the elements in glider
+    grid[i:i+3, j:j+3] = glider
+#update frame
+def updateframe(framenumber, img, grid, scale):
+    #copy current grid to a holder variable
+    #because this calculates line by line
+    holderGrid = grid.copy()
+    #loop through grids element by element
+    for i in range(scale):
+        for j in range(scale):
+            #Compute 8-neighbor sum
+            #wouldn't this array need to be 3D in order
+            #to create a toridal surface?
+            tot = int ((grid[i, (j-1)%scale] + grid[i, (j+1)%scale] +
+                        grid[(i-1)%scale, j] + grid[(i+1)%scale, j] +
+                        grid[(i-1)%scale, (j-1)%scale] + grid[(i-1)%scale, (j+1)%scale] +
+                        grid[(i+1)%scale, (j-1)%scale] + grid[(i+1)%scale, (j+1)%scale])/255)
 
+                    #APPLY CONWAY'S RULES
+            #
+            if grid[i, j] == ON:
+                if (tot < 2) or (tot > 3):
+                    newgrid[i, j] = OFF
+            else:
+                if tot == 3:
+                    newgrid[i, j] = ON
+    #copy grid into newgrid to hold
+    img.set_data(newgrid)
+    grid[:] = newgrid[:]
+    return img
+    # main()
+def main():
+    #create argument parser variable
+    parser = argparse.ArgumentParser(description="Conway's Game Of Life")
+    #add arguments to the parser variable parser
+  #destination arguments
+    parser.add_argument('--grid-size', dest='scale', required=False)
+    parser.add_argument('--mov-file', dest='movfile', required=False)
+    parser.add_argument('--interval', dest='interval', required=False)
+  #action arguments
+    parser.add_argument('--glider', action='store_true', required=False)
+  #parse the arguments and assign it to the args variable
+    args = parser.parse_args()
+    #the grid size can never be smaller that 8
+    #
+    scale = 100
+    if args.scale and int(args.scale) > 8:
+        scale = int(args.scale)
 
-while(1):
-    ComputeFrame(grid)
-    time.sleep(1)
-#print(grid)
+        #set the animation update interval
+    updateinterval = 50
+    if args.interval:
+        updateinterval = int(args.interval)
+    #declare a blank grid
+    grid = np.array([])
+    #place the glider somewhere
+    if args.glider:
+        #clear grid
+        grid = np.zeros(scale*scale).reshape(scale, scale)
+        #insert glider into new fresh grid
+        glider(1, 1, grid)
+    else:
+        #populate grid randomly
+        grid = randgrid(scale)
+    # this sets up matplotlib.animation or something
+    fig, ax = plt.subplots()
+    img = ax.imshow(grid, interpolation='nearest')
+#    animation = anim.FuncAnimation(fig, updateframe, fargs=(img, grid, scale, ),
+#                                        frames = 10, interval=updateinterval, save_count=50)
+    # create output file
+    if args.movfile:
+        anim.save(args.movfile, fps=30, extra_args=['-vcodec', 'libx264'])
+    # show plot ?? play iterations?
+    plt.show()
+#call main
+if __name__ =='__main__':
+    main()
