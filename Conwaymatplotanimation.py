@@ -11,6 +11,8 @@ Fmin1 = 1
 
 fig, ax = plt.subplots()
 #img = ax.imshow(grid, interpolation='nearest')
+time_text = ax.text(0.2, 0.95, '', transform=ax.transAxes)
+
 
 # init function needed for animation to keep time somehow i think?
 def init():
@@ -20,6 +22,17 @@ def init():
     time_text.set_text('')
     line.set_date([],[])
     return line, time_text
+
+
+# animation function
+def animate(i):
+    global Fmin2, Fmin1
+    Fn = Fmin1 + Fmin2
+    Fmin2 = Fmin1
+    Fmin1 = Fn
+    time_text.set_text('i={:d}'.format(i))
+
+
 
         #values needed to create the grid
 ON = 255
@@ -78,11 +91,18 @@ def main():
     parser.add_argument('--interval', dest='interval', required=False)
   #action arguments
     parser.add_argument('--glider', action='store_true', required=False)
+    parser.add_argument('--learn', action='store_true', required=False)
   #parse the arguments and assign it to the args variable
     args = parser.parse_args()
-    #the grid size can never be smaller that 8
-    #
 
+    #if --help argument is thrown
+    if args.learn:
+        print('===========================================================================')
+        print('Try typing Conwaymatplotanimation.py --grid-size 32 --interval 500 --glider')
+        print('===========================================================================')
+        quit()
+
+    #the grid size can never be smaller that 8
     scale = 100
     if args.scale and int(args.scale) > 8:
         scale = int(args.scale)
