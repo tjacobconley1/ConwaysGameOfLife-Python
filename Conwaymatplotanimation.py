@@ -11,6 +11,7 @@ Fmin1 = 1
 
 fig, ax = plt.subplots()
 #img = ax.imshow(grid, interpolation='nearest')
+glider1 = ax.plot([], [], 'ro')
 time_text = ax.text(0.2, 0.95, '', transform=ax.transAxes)
 
 
@@ -31,7 +32,8 @@ def animate(i):
     Fmin2 = Fmin1
     Fmin1 = Fn
     time_text.set_text('i={:d}'.format(i))
-
+    glider1.set_data([Fmin1], [Fn])
+    return line, time_text
 
 
         #values needed to create the grid
@@ -60,6 +62,13 @@ def updateframe(framenumber, img, grid, scale):
     #loop through grids element by element
     for i in range(scale):
         for j in range(scale):
+
+            # i think i need to iterate these values
+            # so that when I run the 'animate()' function the correct
+            # element will be displayed instead of just grid[1][0]
+            Fmin1 = i
+            Fmin2 = j
+
             #Compute 8-neighbor sum
             #wouldn't this array need to be 3D in order
             #to create a toridal surface?
