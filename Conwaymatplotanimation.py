@@ -95,7 +95,7 @@ def main():
   #parse the arguments and assign it to the args variable
     args = parser.parse_args()
 
-    #if --help argument is thrown
+    #if --learn argument is thrown
     if args.learn:
         print('===========================================================================')
         print('Try typing Conwaymatplotanimation.py --grid-size 32 --interval 500 --glider')
